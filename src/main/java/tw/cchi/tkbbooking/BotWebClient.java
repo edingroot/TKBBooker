@@ -1,5 +1,6 @@
 package tw.cchi.tkbbooking;
 
+import javax.net.ssl.*;
 import java.io.*;
 import java.net.CookieHandler;
 import java.net.CookieManager;
@@ -11,12 +12,9 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.net.ssl.*;
-
 public class BotWebClient {
     public static boolean PRINT_REQUEST = false;
 
-    //    private HttpsURLConnection conn;
     private static List<String> cookies;
 
     static {
@@ -24,12 +22,12 @@ public class BotWebClient {
     }
 
     public BotWebClient() {
-        // make sure cookies is turn on
+        // Make sure cookies is turn on
         CookieHandler.setDefault(new CookieManager());
     }
 
     public String sendGet(String url) {
-        return this.sendGet(url, new HashMap<String, String>());
+        return this.sendGet(url, new HashMap<>());
     }
 
     public String sendGet(String url, HashMap<String, String> getParams) {
@@ -70,7 +68,7 @@ public class BotWebClient {
 
             BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String inputLine;
-            StringBuffer response = new StringBuffer();
+            StringBuilder response = new StringBuilder();
             while ((inputLine = in.readLine()) != null) {
                 response.append(inputLine);
             }
@@ -146,7 +144,7 @@ public class BotWebClient {
 
         BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
         String inputLine;
-        StringBuffer response = new StringBuffer();
+        StringBuilder response = new StringBuilder();
         while ((inputLine = in.readLine()) != null) {
             response.append(inputLine);
         }
@@ -161,6 +159,7 @@ public class BotWebClient {
         File file = new File(outFile);
         file.getParentFile().mkdirs();
         file.createNewFile();
+
         try {
             in = getHttpsUrlConnection(url).getInputStream();
             out = new FileOutputStream(outFile);
@@ -199,9 +198,9 @@ public class BotWebClient {
         StringBuilder result = new StringBuilder();
         for (Object key : params.keySet()) {
             if (result.length() == 0) {
-                result.append(key + "=" + params.get(key));
+                result.append(key).append("=").append(params.get(key));
             } else {
-                result.append("&" + key + "=" + params.get(key));
+                result.append("&").append(key).append("=").append(params.get(key));
             }
         }
         return result.toString();
@@ -229,17 +228,11 @@ public class BotWebClient {
             HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 
             // Create all-trusting host name verifier
-            HostnameVerifier allHostsValid = new HostnameVerifier() {
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            };
+            HostnameVerifier allHostsValid = (hostname, session) -> true;
 
             // Install the all-trusting host verifier
             HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (KeyManagementException e) {
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
             e.printStackTrace();
         }
     }
