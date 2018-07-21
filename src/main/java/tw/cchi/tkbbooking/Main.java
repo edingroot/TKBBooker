@@ -71,7 +71,7 @@ public class Main {
 
         System.out.print("Logging in...");
         if (!login()) {
-            System.err.println("Error logging in.");
+            System.err.println("failed.");
             return;
         }
         System.out.println("success.");
@@ -91,9 +91,7 @@ public class Main {
     private static boolean login() {
         String html = botWebClient.sendGet("http://bookseat.tkblearning.com.tw/book-seat/student/login/");
 
-        // Check if had logged in
-        String strCheck = "javascript:location.href='/book-seat/student/login/logout'";
-        if (html.contains(strCheck))
+        if (isLoggedIn(html))
             return true;
 
         Document doc = Jsoup.parse(html);
@@ -110,13 +108,16 @@ public class Main {
         formParams.put("pwd", Config.PASSWORD);
 
         try {
-            botWebClient.sendPost("http://bookseat.tkblearning.com.tw/book-seat/student/login/login", formParams, reqProperties);
+            String loginResponse = botWebClient.sendPost("http://bookseat.tkblearning.com.tw/book-seat/student/login/login", formParams, reqProperties);
+            return isLoggedIn(loginResponse);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
+    }
 
-        return true;
+    private static boolean isLoggedIn(String html) {
+        return html.contains("javascript:location.href='/book-seat/student/login/logout'");
     }
 
     private static int getSeatLeft(String date, String branchNo, int sessionTime) {
@@ -144,7 +145,7 @@ public class Main {
             int segmentNum = Integer.parseInt(jsonSegment.get("SEGMENT").toString());
             if (segmentNum == sessionTime) {
                 boolean hasClass = jsonSegment.get("HASCLASS").toString().equals("1");
-                boolean allowBook = jsonSegment.has("SEAT_MSG") && jsonSegment.get("SEAT_MSG").toString().equals("Y");
+                boolean disallowBook = jsonSegment.has("SEAT_MSG") && jsonSegment.get("SEAT_MSG").toString().equals("N");
                 boolean offClass = jsonSegment.get("OFFCLASS").toString().equals("1");
                 int seatLeft = Integer.parseInt(jsonSegment.get("SEATNUM").toString());
 
@@ -154,7 +155,7 @@ public class Main {
                     if (offClass) {
                         System.out.printf("Off class, seat left=%d\n", seatLeft);
                         return 0;
-                    } else if (!allowBook) {
+                    } else if (disallowBook) {
                         System.out.printf("Booking not allowed, seat left=%d\n", seatLeft);
                         return 0;
                     } else {

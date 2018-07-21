@@ -6,11 +6,8 @@ gradle build
 ```
 
 ## Run
-Edit your credentials in /Config.java and run:
+Edit your credentials in ```/src/main/java/tw/cchi/tkbbooking/Config.java``` and run:
 ```
-# Path of jars
-cd build/libs
-
 # Print usages, using jar with depedencies
-java -jar TKBBooker-all.jar
+java -jar build/libs/TKBBooker-all.jar
 ```
